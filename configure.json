@@ -1,0 +1,21 @@
+{
+	"mongodb":{
+		"mongos":[["10.0.6.32",30000],["10.0.6.31",30000]],
+		"mongodbName": "doubanMovie",
+		"mongoCollection":"movies",
+		"poolSize":5                             
+	},  
+	"redis":{
+		"redisPort":10000, 
+		"redisHost":"10.0.6.32",
+		"redisPoolSize":5,                         
+		"redis_max_delay":1000,
+		"historySet":"history",
+		"targetSet":"target"
+	},
+	"spider":{
+		"erroStep":100,
+		"erroMaxSleep":1000,
+		"sleepForEmpty":1000
+	}
+}
