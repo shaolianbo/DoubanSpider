@@ -1,0 +1,15 @@
+{
+    "appenders": [
+        {
+            "type": "file",
+            "filename": "mainlog.log",
+            "maxLogSize": 20480,
+            "backups": 3,
+            "category": "mainlogger"
+        },
+        {
+            "type": "console"
+        }
+    ],
+    "replaceConsole":true
+}
