@@ -1,5 +1,5 @@
 {
-	"name": "douban movie spider",
+	"name": "DoubanSpider",
 	"version": "0.0.1",
 	"description": "doban movei spider app",
 	"main": "index.js",
@@ -25,7 +25,11 @@
 		"pm":">=2.2.1",
 		"log4js":">=0.6.9",
 		"mongodb":">=1.3.19",
-		"redis":">=0.2.0"
+		"redis":">=0.2.0",
+		"xmlhttprequest":"*",
+        "jsdom":">=0.10.1",
+		"jQuery":">=1.7.4",
+		"async":"*"
 	}
 }    
-
+   

@@ -3,8 +3,16 @@
         {
             "type": "file",
             "filename": "mainlog.log",
-            "maxLogSize": 20480,
-            "backups": 3,
+            "maxLogSize": 1073741824,
+            "backups": 0,
+            "category": "mainlogger"
+        },
+        {
+            "type": "file",
+			"level":"WARN",
+            "filename": "warn.log",
+            "maxLogSize": 1073741824,
+            "backups": 1,
             "category": "mainlogger"
         },
         {

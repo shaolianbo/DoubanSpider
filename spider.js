@@ -5,15 +5,17 @@ var async = require("async")
 
 function spider(){
 	if(!(this instanceof spider )) return spider
-	this.redis_historySet =  context.redis.historySet;
-	this.redis_targetSet = context.redis.targetSet;
-	this.mongo_col = context.mongodb.mongoCollection;
-	this.erroStep = context.spider.erroStep;
-	this.erroMaxSleep = context.spider.erroMaxSleep;
-	this.sleepForEmpty = context.spider.sleepForEmpty:
+	var configure = context.configure;
+	this.redis_historySet =  configure.redis.historySet;
+	this.redis_targetSet = configure.redis.targetSet;
+	this.mongo_col = configure.mongodb.mongoCollection;
+	this.erroStep = configure.spider.erroStep;
+	this.erroMaxSleep = configure.spider.erroMaxSleep;
+	this.sleepForEmpty = configure.spider.sleepForEmpty;
 	this.redisClientSleepTime = 0;
 	this.mongoClientSleepTime =0;
-	this.webSleepTime = 0
+	this.webSleepTime = 0;
+	this.state = 0;
 }
 
 spider.prototype.sleepForRedis = function(callback){
@@ -36,43 +38,63 @@ spider.prototype.sleepForWeb = function(callback){
 	setTimeout(callback,this.webSleepTime);
 }
 
+spider.prototype.stop = function(){
+	this.state = 0;
+}
+
+spider.prototype.start = function(){
+	this.state = 1;
+	this.run()
+}
+
 /*  errocode:
- *  	1 pushback + sleep n s for empty 
+ *  	1 sleep n s for empty 
  *      2 pushback + sleep steps for redis
  *      3 goback
  *      4 pushback + sleep steps for mongos
  *      5 pushback + sleep steps for web
- *
+ *      6 sleep steps for redis
+ *      7 stop
  */
 spider.prototype.run = function(){
 	var self = this;
 	var redisClient = context.getRedisClient();
 	var id
 	var movie
-
+	logger.debug("spider run begin")
 	async.series([getId,isInHistory,downLoadAndAnalyse,saveMongo,changeRedis],
 		function(err,result){
-			if(err==1)
-				return pushback(function(){ 
-					setTimeout(self.run,self.sleepForEmpty)	}	)
+			if(err==1){
+				logger.debug("spider sleep "+self.sleepForEmpty+" for empty ")
+				return  setTimeout(function(){self.run()},self.sleepForEmpty)
+				}
 			if(err==2)
 				return pushback(function(){ 
-					self.sleepForRedis(self.run)}	)
+					self.sleepForRedis(function(){self.run()})})
 			if(err == 3)	
-				return process.nextTick(self.run)
+				return process.nextTick(function(){self.run()})
 			if(err == 4)
 				return pushback(function(){ 
-					self.sleepForMongo(self.run)}	)
+					self.sleepForMongo(function(){self.run()})}	)
 			if(err == 5)
 				return pushback(function(){ 
-					self.sleepForWeb(self.run)}	)
-			return process.nextTick(self.run)
+					self.sleepForWeb(function(){self.run()})}	)
+			if(err == 6)
+				return self.sleepForRedis(function(){self.run()})
+			if(err == 7)
+				return 
+			return process.nextTick(function(){self.run()})
 				
 		})	
+	
+	function checkState(callback){
+		if(this.state == 0)
+			return callback(7)
+		return callback()
+	}
 
 	function pushback(callback){
-		var self = this
-		self.sadd(self.redis_targetSet,id,function(err,reply){
+		redisClient.sadd(self.redis_targetSet,id,function(err,reply){
 			if(err){
 				logger.error("spider pushback err %s",err.toString())
 				return self.sleepForRedis(function(){ pushback(callback)})
@@ -85,14 +107,15 @@ spider.prototype.run = function(){
 		redisClient.spop(self.redis_targetSet,function(err,reply){
 			if(err){
 				logger.error("spider getId %s",err.toString())
-				return callback(2)
+				return callback(6)
 			}
-			this.redisClientSleepTime=0;
+			self.redisClientSleepTime=0;
 			if(!reply){
 				logger.warn("spider getId empty")
 				return callback(1)
 			}
 			id = parseInt(reply)
+			logger.debug("spider gitId get %d",id)
 			callback()
 		})
 	}
@@ -102,16 +125,16 @@ spider.prototype.run = function(){
 				logger.error("spider isInHistory %s",err.toString())
 				return callback(2)
 			}
-			this.redisClientSleepTime=0
+			self.redisClientSleepTime=0
 			if(reply){
 				logger.info("spider isInHistory %d is old",id)
 				return callback(3)
 			}
+			logger.debug("spider isInHistory %d is not in history",id)
 			return callback()
 		})	
 	}
 	function downLoadAndAnalyse(callback){
-		var self = this
 		app.downLoad("movie.douban.com","/subject/"+id+"/",function(content,path,code){
 			if(code == 404){
 				logger.warn("spider downLoad %s 404",path)
@@ -121,19 +144,20 @@ spider.prototype.run = function(){
 				logger.warn("spider downLoad %s code:%d",path,code)
 				return callback(5)
 			}
-			this.webSleepTime = 0;
+			self.webSleepTime = 0;
+			logger.debug("spider downLoad %s ok",path)
 			app.analyse(content,path,function(mv){
 				if(!mv){
 					logger.warn("spider analys %s failed",path)
 					return callback(3)
 				}
 				movie = mv
+				logger.debug("spider analyse %s ok",path)
 				return callback()
 			})		
-		})			
+		}	)			
 	}
 	function saveMongo(callback){
-		var self = this;
 		context.getMongoDB(function(err,db){
 			if(err){
 				logger.error("spider saveMongo getMongoDb error %s",err.toString())
@@ -142,25 +166,26 @@ spider.prototype.run = function(){
 			var col = db.collection(self.mongo_col)	;
 			col.save(movie,function(err,reply){
 				if(err){
-					logger.error("spider saveMongo save err %s ",err.toString())
+					logger.error("spider saveMongo save %d  err %s ",id,err.toString())
 					return callback(4)
 				}
 				self.mongoClientSleepTime = 0;
 				if(!reply){
-					logger.warn("spider saveMongo save reply emtpy")
+					logger.warn("spider saveMongo save %d reply emtpy",id)
 					return callback(3)
 				}
+				logger.debug("spider saveMongo save %d ok",id)
 				callback()
 			})
 		})
 	}
 	function changeRedis(callback){
-		var self = this;
 		redisClient.sadd(self.redis_historySet,movie._id,function(err,reply){
 			if(err){
 				logger.error("spider history sadd err %s",err.toString())
 				return callback(2)
 			}
+			logger.debug("spider addToHistory %d ok",id)
 			var newids = movie.recommendations.map(function(value){return value.id})
 			redisClient.sadd(self.redis_targetSet,newids,function(err,reply){
 				if(err){
@@ -168,6 +193,7 @@ spider.prototype.run = function(){
 					return callback(2)
 				}
 				self.redisClientSleepTime = 0;
+				logger.debug("spider addToTarget %d,%s,ok",id,newids.toString())
 				callback()	
 			})
 		})
@@ -175,7 +201,7 @@ spider.prototype.run = function(){
 }
 
 /*
- * 1.get a id (no data:pushback+sleep1s  err:pushback+sleep steps   )
+ * 1.get a id (no data:sleep1s  err:sleep steps   )
  * 2.whether is in history (err:pushback + sleep steps)
  * 3.downLoad (err:pushback+goback)
  * 4.analyse  (err:pushback+goback)
@@ -184,3 +210,7 @@ spider.prototype.run = function(){
  * 7.add to target (err:goback)
  *
  */
+exports.spider = spider
+
+//var sp =new spider()
+//sp.run()

@@ -17,5 +17,9 @@
 		"erroStep":100,
 		"erroMaxSleep":1000,
 		"sleepForEmpty":1000
+	},
+	"control":{
+		"processCount":1,
+		"spiderCountPerPro":3
 	}
 }

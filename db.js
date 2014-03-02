@@ -24,7 +24,7 @@ function redisPool(size,redisPort,redisHost,max_delay,logger){
 	logger.info("redisPool init over")
 }
 
-function createMongoClient(size,mongosConf,logger,callback){
+function createMongoClient(size,mongosConf,dbName,logger,callback){
 
 	var servers=[]
 	for(var i=0;i<mongosConf.length;i++){
@@ -32,7 +32,7 @@ function createMongoClient(size,mongosConf,logger,callback){
 		mongosConf[i][1],{auto_reconnect:true,'poolSize': size}))
 	}
 	var mongos = new Mongos(servers)
-	var db=new mongoDb(worker.mongodbName,mongos,{w:1})
+	var db=new mongoDb(dbName,mongos,{w:1})
 	db.on("close",function(err){
 		logger.error("mongos is closed %s",err) 
 	})
