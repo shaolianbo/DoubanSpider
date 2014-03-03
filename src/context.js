@@ -1,7 +1,7 @@
 var log4js=require("log4js")
-log4js.configure("./log4jsConf.json")
+log4js.configure("../log4jsConf.json")
 var globalAgent=require("http").globalAgent
-var configure = require("./configure.json")
+var configure = require("../configure.json")
 var dbContext = require("./db")
 
 exports.mainlogger=log4js.getLogger("mainlogger")
