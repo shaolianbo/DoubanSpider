@@ -3,7 +3,7 @@ var context = require("./context")
 var logger = context.mainlogger
 var fs = require("fs")
 var runShell = context.runShell
-var speedController = require("./speedControl")
+var speedControl = require("./speedControl")
 
 function startMonitor(shell){
 	function monitor(){
@@ -30,6 +30,7 @@ try{
 	var speedController = new speedControl(interfaces,controlConf.visitCountPerMinPerIf,
 					60*1000)
 	var spiders=[]
+	console.log
 	for(var i=0;i<controlConf.spiderCount;i++)
 		spiders.push(new spider(interfaces[i%interfaces.length],speedController))	
 	var shell = new runShell()
@@ -37,7 +38,8 @@ try{
 	startMonitor(shell)
 }
 catch(err){
-	logger.error("worker spiders  error %s",err.stack)
+	
+	logger.info("worker spiders  error %s",err.stack)
 	process.exit(1)
 }
 

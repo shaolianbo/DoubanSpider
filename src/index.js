@@ -1,10 +1,7 @@
 var cluster = require("cluster")
 var context = require("../configure.json")
 var fs = require("fs")
-
-var log4js = require("log4js")
-log4js.configure("../log4jsMaster.json")
-var logger = log4js.getLogger("masterLogger")
+var logger = require("./context").mainlogger
 
 
 function getKeyCount(obj){

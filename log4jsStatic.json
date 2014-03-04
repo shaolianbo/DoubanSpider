@@ -3,7 +3,7 @@
 		{
 			"type":"file",
 			"category":"seedLogger",
-			"filename":"/root/log/seed.log"
+			"filename":"/root/log/seed.log",
 			"maxLogSize": 1073741824,
 			"backups": 1
 		},
@@ -11,8 +11,11 @@
 			"type":"file",
 			"category":"spiderLogger",
 			"filename":"/root/log/spider.log",
-			"maxLogSize": 1073741824,
-			"backups": 1
+			"level":"DEBUG"
+		},
+		{
+			"type": "console" 
 		}
-    ]
+    ],
+	"replaceConsole":true
 }

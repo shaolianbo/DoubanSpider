@@ -93,7 +93,7 @@ exports.downLoad = function(host,path,interface,callback){
 *    }
 *
 */
-exports.analyse = function (content,path,logger,callback){
+exports.analyse = function (content,path,callback){
 
 	if(!content){
 		return callback()
