@@ -1,5 +1,5 @@
 var context = require("./context")
-var logger = context.mainlogger
+var logger = context.seedLogger
 var app = require("./applications")
 var jq = require("jQuery").create()
 
@@ -23,7 +23,7 @@ function getMovieList(tag,callback){
 		result.each(function(index){
 			var $ = jq(this);
 			links.push(parseInt($.attr("href").match(/\d+/g)[0]))
-			if(++i>=n)
+			if(++i==n)
 				callback(links)
 		})
 	})
@@ -65,6 +65,13 @@ function addSeedFromTag(){
 	})
 }
 
-exports.addSeedFromTag = addSeedFromTag
+exports.addSeed = function(){
+	addSeedFromTag()
+}
 
-addSeedFromTag()
+try{
+	exports.addSeed()
+}catch(err){
+	console.log("addSeed erro %s",err.stack)
+	logger.error("addSeed erro %s",err.stack)
+}

@@ -11,8 +11,10 @@ var logger = context.mainlogger
 * @param callback: 
 * 	function(content,path,code){...}  content is buffer,path pref the web address
 */
-exports.downLoad = function(host,path,callback){
+exports.downLoad = function(host,path,interface,callback){
 
+	if(typeof(interface)=="function")	
+		interface = ""
 	var option={
 		hostname: host,
 		path: path,
@@ -22,7 +24,8 @@ exports.downLoad = function(host,path,callback){
 		},
 		agent: context.globalAgent
 	}
-
+	if(interface)
+		option.localAddress=interface;
 	//	try{
 		var req = http.request(option,function(res){
 
@@ -90,7 +93,7 @@ exports.downLoad = function(host,path,callback){
 *    }
 *
 */
-exports.analyse = function (content,path,callback){
+exports.analyse = function (content,path,logger,callback){
 
 	if(!content){
 		return callback()

@@ -15,7 +15,7 @@ function getKeyCount(obj){
 }
 
 cluster.setupMaster({
-	exec:"startSpider.js",
+	exec:"startAnalysers.js",
 	args:[],
 	silent: false
 })

@@ -14,7 +14,14 @@ function controler(iplists,count,intervalTime){
     }
     
     this.restart()
-        
+}
+controler.prototype.reset = function(count,intervalTime){
+	this.count = count;
+	this.intervalTime = intervalTime;
+}
+
+controler.prototype.getCount = function(){
+	return this.count
 }
 
 controler.prototype.restart = function (){

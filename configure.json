@@ -3,6 +3,7 @@
 		"mongos":[["10.0.6.32",30000],["10.0.6.31",30000]],
 		"mongodbName": "doubanMovie",
 		"mongoCollection":"movies",
+		"mongoSourceCol":"pages",
 		"poolSize":5                             
 	},  
 	"redis":{
@@ -18,8 +19,17 @@
 		"erroMaxSleep":1000,
 		"sleepForEmpty":1000
 	},
+	"analyser":{
+		"erroStep":100,
+		"erroMaxSleep":1000,
+		"sleepForEmpty":1000
+	},
 	"control":{
-		"processCount":1,
-		"spiderCountPerPro":3
+		"interfaces":["10.0.3.3"],
+		"addSeed": 0,
+		"processCount":3,
+		"spiderCount":3,
+		"analyserCountPerPro":3,
+		"visitCountPerMinPerIf":40
 	}
 }
