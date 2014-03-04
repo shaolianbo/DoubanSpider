@@ -13,8 +13,10 @@ var logger = context.mainlogger
 */
 exports.downLoad = function(host,path,interface,callback){
 
-	if(typeof(interface)=="function")	
+	if(typeof(interface)=="function"){
+		callback = interface
 		interface = ""
+	}
 	var option={
 		hostname: host,
 		path: path,
