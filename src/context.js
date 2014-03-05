@@ -11,7 +11,6 @@ globalAgent.maxSockets=10
 exports.globalAgent = globalAgent;
 
 var redisPool
-var mongoDB
 exports.getRedisClient = function(){
 	if(!redisPool)
 		redisPool = new dbContext.redisPool(configure.redis.redisPoolSize,
@@ -19,11 +18,21 @@ exports.getRedisClient = function(){
 		configure.redis.redis_max_delay,exports.mainlogger)
 	return redisPool.get()
 }
+var mongodb
 exports.getMongoDB = function(callback){
-	if(mongoDB)
-		return callback(null,mongoDB);
+    if(mongodb)
+        return callback(null,mongodb)
 	dbContext.createMongoClient(configure.mongodb.poolSize,configure.mongodb.mongos,
-	configure.mongodb.mongodbName,exports.mainlogger,callback)
+	configure.mongodb.mongodbName,exports.mainlogger,function(err,db){
+        if(db)
+            mongodb = db
+        callback(err,mongodb)
+    })
+}
+
+exports.closeMongodb = function(){
+    if(mongodb)
+        mongodb.close()
 }
 
 exports.configure = configure

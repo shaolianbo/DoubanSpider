@@ -17,6 +17,9 @@ function analyser(){
 	this.mongoClientSleepTime =0;
 	this.webSleepTime = 0;
 	this.state = 0;
+    this.pagesCol;
+    this.movieCol;
+	this.redisClient = context.getRedisClient();
 }
 
 analyser.prototype.sleepForRedis = function(callback){
@@ -44,8 +47,18 @@ analyser.prototype.stop = function(){
 }
 
 analyser.prototype.start = function(){
-	this.state = 1;
-	this.run()
+    var self = this;
+    context.getMongoDB(function(err,db){
+        if(err){
+            logger.error("analyser start getDB err %s",err.toString())
+            return self.sleepForMongo(function(){ self.start()})
+        }
+        self.mongoClientSleepTime =0;
+        self.pagesCol = db.collection(self.mongoSourceCol)
+        self.movieCol = db.collection(self.mongo_col)
+        self.state = 1;
+        self.run()
+    })
 }
 
 
@@ -60,7 +73,6 @@ analyser.prototype.start = function(){
  */
 analyser.prototype.run = function(){
 	var self = this;
-	var redisClient = context.getRedisClient();
 	var id
 	var movie
 	var mydb
@@ -74,8 +86,7 @@ analyser.prototype.run = function(){
 			if(err == 7)
 				return 
 			if(err ==2){
-				var col = mydb.collection(self.mongoSourceCol);
-				col.remove({"_id":id},function(err,num){
+				self.pagesCol.remove({"_id":id},function(err,num){
 					logger.debug("analyser saveMongo del %d",id)
 					process.nextTick(function(){self.run()})
 				})
@@ -89,31 +100,23 @@ analyser.prototype.run = function(){
 			return callback(7)
 		return callback()
 	}
-
-	function getPage(callback){
-	
-		context.getMongoDB(function(err,db){
-			if(err){
-				logger.error("analyse getPage getDB err %s",err.toString())
-				return self.sleepForMongo(function(){ getPage(callback)}) 
-			}
-			mydb = db;
-			var col = db.collection(self.mongoSourceCol);
-			col.findOne({},function(err,page){
-				if(err){
-					logger.error("analyse getPage findOne err %s",err.toString())
-					return self.sleepForMongo(function(){ getPage(callback)})
-				}
-				self.mongoClientSleepTime =0 ;
-				if(!page)
-					return callback(1); 
-				id = page._id;
-				movie = page.page;
-				logger.debug("analyse getPage %d ok",id)
-				callback()
-			})
-		})
-	}
+  
+    function getPage(callback){
+        logger.debug("analyser getPage start")	
+        self.pagesCol.findOne({},function(err,page){
+            if(err){
+                logger.error("analyser getPage findOne err %s",err.toString())
+                return self.sleepForMongo(function(){ getPage(callback)})
+            }
+            self.mongoClientSleepTime =0 ;
+            if(!page)
+                return callback(1); 
+            id = page._id;
+            movie = page.page;
+            logger.debug("analyser getPage %d ok",id)
+            callback()
+        })
+    }
 	function Analyse(callback){
 		app.analyse(movie,"/subject/"+id,function(mv){
 			if(!mv){
@@ -126,8 +129,7 @@ analyser.prototype.run = function(){
 		})		
 	}
 	function changeMongo(callback){
-			var col = mydb.collection(self.mongo_col)	;
-			col.save(movie,function(err,reply){
+			self.movieCol.save(movie,function(err,reply){
 				if(err){
 					logger.error("analyser saveMongo save %d  err %s ",id,err.toString())
 					return self.sleepForMongo(function(){ changeMongo(callback )})
@@ -137,8 +139,7 @@ analyser.prototype.run = function(){
 					logger.warn("analyser saveMongo save %d reply emtpy",id)
 				}
 				logger.debug("analyser saveMongo save %d ok",id)
-				var pageCol = mydb.collection(self.mongoSourceCol);
-				pageCol.remove({"_id":id},function(err,num){
+				self.movieCol.remove({"_id":id},function(err,num){
 					logger.debug("analyser saveMongo del %d",id)
 					callback()
 				})
@@ -146,7 +147,7 @@ analyser.prototype.run = function(){
 	}
 	function changeRedis(callback){
 			var newids = movie.recommendations.map(function(value){return value.id})
-			redisClient.sadd(self.redis_targetSet,newids,function(err,reply){
+			self.redisClient.sadd(self.redis_targetSet,newids,function(err,reply){
 				if(err){
 					logger.error("analyser target sadd err %s",err.toString())
 					return self.sleepForRedis(function(){ changeRedis(callback)})

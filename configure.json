@@ -27,7 +27,7 @@
 	"control":{
 		"interfaces":["10.0.4.28"],
 		"addSeed": 0,
-		"processCount":3,
+		"processCount":1,
 		"spiderCount":3,
 		"analyserCountPerPro":3,
 		"visitCountPerMinPerIf":40

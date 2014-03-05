@@ -19,6 +19,8 @@ function spider(ip,controller){
 	this.state = 0;
 	this.ip = ip;
 	this.controller = controller;
+    this.pagesCol;
+	this.redisClient = context.getRedisClient();
 }
 
 spider.prototype.sleepForRedis = function(callback){
@@ -46,13 +48,21 @@ spider.prototype.stop = function(){
 }
 
 spider.prototype.start = function(){
-	this.state = 1;
-	this.run()
+    var self = this;
+    context.getMongoDB(function(err,db){
+        if(err){
+            logger.error("analyser start getDB err %s",err.toString())
+            return self.sleepForMongo(function(){ self.start()})
+        }
+        self.mongoClientSleepTime =0;
+        self.pagesCol = db.collection(self.mongoSourceCol)
+        self.state = 1;
+        self.run()
+    })
 }
 
 spider.prototype.run = function(){
 	var self = this;
-	var redisClient = context.getRedisClient();
 	var id
 	var movie
 	logger.debug("spider run begin")
@@ -80,7 +90,7 @@ spider.prototype.run = function(){
 	}
 
 	function pushback(callback){
-		redisClient.sadd(self.redis_targetSet,id,function(err,reply){
+		self.redisClient.sadd(self.redis_targetSet,id,function(err,reply){
 			if(err){
 				logger.error("spider pushback err %s",err.toString())
 				return self.sleepForRedis(function(){ pushback(callback)})
@@ -90,7 +100,7 @@ spider.prototype.run = function(){
 		})
 	}
 	function getId(callback){
-		redisClient.spop(self.redis_targetSet,function(err,reply){
+		self.redisClient.spop(self.redis_targetSet,function(err,reply){
 			if(err){
 				logger.error("spider getId %s",err.toString())
 				return self.sleepForRedis(function(){ getId(callback)})
@@ -106,7 +116,7 @@ spider.prototype.run = function(){
 		})
 	}
 	function isInHistory(callback){
-		redisClient.sismember(self.redis_historySet,id,function(err,reply){
+		self.redisClient.sismember(self.redis_historySet,id,function(err,reply){
 			if(err){
 				logger.error("spider isInHistory %s",err.toString())
 				return self.sleepForRedis(function(){isInHistory(callback)})
@@ -137,13 +147,7 @@ spider.prototype.run = function(){
 		}	)			
 	}
 	function saveMongo(callback){
-		context.getMongoDB(function(err,db){
-			if(err){
-				logger.error("spider saveMongo getMongoDb error %s",err.toString())
-				return self.sleepForMongo(function(){saveMongo(callback)});
-			}
-			var col = db.collection(self.mongoSourceCol);
-			col.save({"_id":id,"page":movie},function(err,reply){
+			self.pagesCol.save({"_id":id,"page":movie},function(err,reply){
 				if(err){
 					logger.error("spider saveMongo save %d  err %s ",id,err.toString())
 					return self.sleepForMongo(function(){saveMongo(callback)});
@@ -155,11 +159,10 @@ spider.prototype.run = function(){
 				logger.debug("spider saveMongo save %d ok",id)
 				callback()
 			})
-		})
 	}
 	
 	function changeRedis(callback){
-		redisClient.sadd(self.redis_historySet,id,function(err,reply){
+		self.redisClient.sadd(self.redis_historySet,id,function(err,reply){
 			if(err){
 				logger.error("spider changeRedis err %s",err.toString())
 				return self.sleepForRedis(function(){ changeRedis(callback)})

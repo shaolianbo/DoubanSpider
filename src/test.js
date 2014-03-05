@@ -34,9 +34,22 @@
 
 
 var context = require("./context")
+//function test(col){
+//        col.findOne({},function(err,page){
+//            console.log("callback %s %s",(new Date()).toString(),err)
+//            setTimeout(function(){},350)
+//        })
+//}
+
+function test(col){
+    col.findOne({},function(err,page){
+        console.log("callback %s %s",(new Date()).toString(),err)
+        setTimeout(function(){test(col)},350)
+    })
+}
+
 context.getMongoDB(function(err,db){
-	var col = db.collection("pageSource")
-	col.findOne({},function(err,page){
-		console.log(""+err+"--"+page+"--"+(typeof page))
-	})
+    var col = db.collection("pages")
+    test(col)
 })
+
