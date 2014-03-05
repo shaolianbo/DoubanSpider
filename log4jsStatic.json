@@ -11,7 +11,9 @@
 			"type":"file",
 			"category":"spiderLogger",
 			"filename":"/root/log/spider.log",
-			"level":"DEBUG"
+			"level":"DEBUG",
+			"maxLogSize": 1073741824,
+			"backups": 1
 		},
 		{
 			"type": "console" 
