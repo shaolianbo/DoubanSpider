@@ -25,7 +25,7 @@
 		"sleepForEmpty":1000
 	},
 	"control":{
-		"interfaces":["10.0.3.3"],
+		"interfaces":["10.0.4.28"],
 		"addSeed": 0,
 		"processCount":3,
 		"spiderCount":3,
