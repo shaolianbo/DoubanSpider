@@ -6,8 +6,9 @@ DoubanSpider
 运行方法：
   
   1. npm install
-  2. 配置
-  3. sh spider.sh seed      #抓取种子网址
+  2. npm install forever -g
+  3. 配置
+  4. sh spider.sh seed      #抓取种子网址
      sh spider.sh spider    #开启爬虫   ，此处启动，依赖forever
      sh spider.sh analyse   #开启网页分析
      
