@@ -21,11 +21,11 @@ cluster.setupMaster({
 var conf = context.control;
 cluster.on("exit",function(worker,code,signal){
 	if(getKeyCount(cluster.workers)<conf.processCount){
-		console.log('worker %d died (%s). restarting...',
+		logger.warn('worker %d died (%s). restarting...',
 		worker.process.pid, signal || code);
 		cluster.fork();
 	}else{
-		console.log('worker %d died (%s)',worker.process.pid,signal || code)
+		logger.warn('worker %d died (%s)',worker.process.pid,signal || code)
 	}
 })
 
