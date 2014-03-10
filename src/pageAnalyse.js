@@ -5,18 +5,18 @@ var async = require("async")
 
 function analyser(){
 	if(!(this instanceof analyser )) return  new analyser();
-	var configure = context.configure;
-	this.redis_historySet =  configure.redis.historySet;
-	this.redis_targetSet = configure.redis.targetSet;
-	this.mongo_col = configure.mongodb.mongoCollection;
-	this.mongoSourceCol = configure.mongodb.mongoSourceCol;
-	this.erroStep = configure.analyser.erroStep;
-	this.erroMaxSleep = configure.analyser.erroMaxSleep;
-	this.sleepForEmpty = configure.analyser.sleepForEmpty;
+	var configure             = context.configure;
+	this.redis_historySet     = configure.redis.historySet;
+	this.redis_targetSet      = configure.redis.targetSet;
+	this.mongo_col            = configure.mongodb.mongoCollection;
+	this.mongoSourceCol       = configure.mongodb.mongoSourceCol;
+	this.erroStep             = configure.analyser.erroStep;
+	this.erroMaxSleep         = configure.analyser.erroMaxSleep;
+	this.sleepForEmpty        = configure.analyser.sleepForEmpty;
 	this.redisClientSleepTime = 0;
-	this.mongoClientSleepTime =0;
-	this.webSleepTime = 0;
-	this.state = 0;
+	this.mongoClientSleepTime = 0;
+	this.webSleepTime         = 0;
+	this.state                = 0;
     this.pagesCol;
     this.movieCol;
 	this.redisClient = context.getRedisClient();

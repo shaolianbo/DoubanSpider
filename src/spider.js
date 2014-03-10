@@ -5,22 +5,22 @@ var async = require("async")
 
 function spider(ip,controller){
 	if(!(this instanceof spider )) return new spider(ip,controller)
-	var configure = context.configure;
-	this.redis_historySet =  configure.redis.historySet;
-	this.redis_targetSet = configure.redis.targetSet;
-	this.mongo_col = configure.mongodb.mongoCollection;
-	this.mongoSourceCol = configure.mongodb.mongoSourceCol;
-	this.erroStep = configure.spider.erroStep;
-	this.erroMaxSleep = configure.spider.erroMaxSleep;
-	this.sleepForEmpty = configure.spider.sleepForEmpty;
+	var configure             = context.configure;
+	this.redis_historySet     = configure.redis.historySet;
+	this.redis_targetSet      = configure.redis.targetSet;
+	this.mongo_col            = configure.mongodb.mongoCollection;
+	this.mongoSourceCol       = configure.mongodb.mongoSourceCol;
+	this.erroStep             = configure.spider.erroStep;
+	this.erroMaxSleep         = configure.spider.erroMaxSleep;
+	this.sleepForEmpty        = configure.spider.sleepForEmpty;
 	this.redisClientSleepTime = 0;
-	this.mongoClientSleepTime =0;
-	this.webSleepTime = 0;
-	this.state = 0;
-	this.ip = ip;
-	this.controller = controller;
+	this.mongoClientSleepTime = 0;
+	this.webSleepTime         = 0;
+	this.state                = 0;
+	this.ip                   = ip;
+	this.controller           = controller;
     this.pagesCol;
-	this.redisClient = context.getRedisClient();
+	this.redisClient          = context.getRedisClient();
 }
 
 spider.prototype.sleepForRedis = function(callback){
