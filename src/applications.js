@@ -18,13 +18,13 @@ exports.downLoad = function(host,path,interface,callback){
 		interface = ""
 	}
 	var option={
-		hostname: host,
-		path: path,
-		method:"GET",
-		headers:{
-			"User-Agent": "Mozilla/5.0"
+		hostname     : host,
+		path         : path,
+		method       : "GET",
+		headers      : {
+		"User-Agent" : "Mozilla/5.0"
 		},
-		agent: context.globalAgent
+		agent        : context.globalAgent
 	}
 	if(interface)
 		option.localAddress=interface;
